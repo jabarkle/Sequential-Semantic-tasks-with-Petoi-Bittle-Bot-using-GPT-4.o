@@ -104,13 +104,8 @@ openai.api_key = "your-openai-api-key-here"
 Follow the previous project instructions for configuring the Bittle robot, overhead camera, and network settings.
 
 ### 4. Configure Mission Goals
-Edit `LLM_reasoning_node.py` lines 23 – 26:
-```python
-self.mission_goals = [
-    {"name": "resource_goal", "position": [0.5, 0.5]},  # Stage 1 target
-    {"name": "final_goal",    "position": [1.0, 1.0]}   # Stage 2 target
-]
-```
+Edit `LLM_reasoning_node.py` You should be able to focus on the prompt. 
+
 
 ## Running Sequential Experiments
 
@@ -160,6 +155,7 @@ ros2 topic echo /bittlebot/path_json   # planner status
 | Hazard Avoidance    | Move to safe staging area | Approach final goal while avoiding hazards            |
 
 ## Dynamic Buffer Management
+This part should update automatically based on GPT's interpretation of the environment.
 - **Buffer 0** — direct paths in open environments  
 - **Buffer 20** — narrow passages or high obstacle density  
 
