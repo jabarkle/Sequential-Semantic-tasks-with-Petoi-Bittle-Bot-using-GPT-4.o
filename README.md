@@ -88,7 +88,7 @@ sudo apt install ros-humble-nav-msgs ros-humble-sensor-msgs
 ### 1. Clone Repository
 ```bash
 cd ~/ros2_ws/src
-git clone https://github.com/yourusername/sequential-semantic-navigation.git
+git clone https://github.com/jabarkle/Sequential-Semantic-tasks-with-Petoi-Bittle-Bot-using-GPT-4.o.git
 cd ~/ros2_ws
 colcon build
 source install/setup.bash
