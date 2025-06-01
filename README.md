@@ -77,6 +77,7 @@ sudo apt update && sudo apt install ros-humble-desktop
 pip install openai ultralytics opencv-python apriltag cv-bridge
 # Additional ROS 2 packages
 sudo apt install ros-humble-nav-msgs ros-humble-sensor-msgs
+```
 
 ### Additional Message Types
 - `std_msgs/Int32` — buffer updates and stage notifications  
@@ -91,3 +92,141 @@ git clone https://github.com/yourusername/sequential-semantic-navigation.git
 cd ~/ros2_ws
 colcon build
 source install/setup.bash
+```
+
+### 2. Configure OpenAI API
+Edit `LLM_reasoning_node.py` line 61:
+```python
+openai.api_key = "your-openai-api-key-here"
+```
+
+### 3. Setup Hardware
+Follow the previous project instructions for configuring the Bittle robot, overhead camera, and network settings.
+
+### 4. Configure Mission Goals
+Edit `LLM_reasoning_node.py` lines 23 – 26:
+```python
+self.mission_goals = [
+    {"name": "resource_goal", "position": [0.5, 0.5]},  # Stage 1 target
+    {"name": "final_goal",    "position": [1.0, 1.0]}   # Stage 2 target
+]
+```
+
+## Running Sequential Experiments
+
+### Basic System Startup
+```bash
+# Terminal 1 (camera Pi): start stream
+python3 mjpeg_server.py
+
+# Terminal 2 (laptop): video publisher
+ros2 run bittle_ros2 webvid_publisher
+
+# Terminal 3: object detection
+ros2 run bittle_ros2 yolo_node
+
+# Terminal 4: robot localization
+ros2 run bittle_ros2 apriltag_node
+
+# Terminal 5: dynamic occupancy grid
+ros2 run bittle_ros2 occupancy_grid_publisher
+
+# Terminal 6: multi-stage path planner
+ros2 run bittle_ros2 path_planner
+```
+
+### Mission Control
+```bash
+# Terminal 7 (Bittle Pi): command executor
+ros2 run bittle_ros2 bittle_command_executor
+
+# Terminal 8 (laptop): sequential LLM reasoning
+ros2 run bittle_ros2 LLM_reasoning_node
+```
+
+### Monitoring
+```bash
+ros2 topic echo /llm_stage             # current mission stage
+ros2 topic echo /buffer_update         # buffer commands
+ros2 topic echo /bittlebot/path_json   # planner status
+```
+
+## Multi-Stage Mission Types
+
+| Mission Type        | Stage 1 (Initial)      | Stage 2 (Follow-up)                                   |
+|---------------------|------------------------|-------------------------------------------------------|
+| Resource → Goal     | Collect resource marker | Navigate to final destination                         |
+| Low Battery         | Reach charging station  | Navigate to objective after "recharging"              |
+| Hazard Avoidance    | Move to safe staging area | Approach final goal while avoiding hazards            |
+
+## Dynamic Buffer Management
+- **Buffer 0** — direct paths in open environments  
+- **Buffer 20** — narrow passages or high obstacle density  
+
+GPT-4 receives path metrics and replies:
+```json
+{
+  "mode": "candidate_selection",
+  "selected_candidate": 0,
+  "buffer": 20
+}
+```
+
+The buffer decision is published to `/buffer_update`; the occupancy grid and planner update immediately.
+
+## Results
+- **Stage 1 Completion:** 100% resource acquisition  
+- **Stage 2 Completion:** 100% final navigation  
+- **Overall Mission Success:** 100% two-stage tasks  
+- **Buffer Accuracy:** correct margins in 95% scenarios  
+- **Safety Improvement:** 40% fewer near-collisions versus a fixed buffer  
+
+## Troubleshooting
+
+| Issue | Checks |
+|-------|--------|
+| **Stuck Between Stages** | `ros2 topic echo /llm_stage`, verify proximity thresholds, confirm AprilTag pose |
+| **Buffer Not Updating**  | `ros2 topic echo /buffer_update`, review OpenAI API logs, ensure occupancy-grid republish |
+| **Goals Not Detected**   | `ros2 topic echo /yolo/goals`, check planner fallback parameters |
+
+### Debug Commands
+```bash
+ros2 topic echo /llm_stage               # mission progression
+ros2 topic echo /buffer_update           # buffer coordination
+ros2 topic echo /bittlebot/path_gpt_json # LLM timing
+ros2 topic echo /yolo/goals --field data # goal filtering
+```
+
+## File Structure
+```
+bittle_ros2/
+├── apriltag_node.py            # Robot localization
+├── bittle_command_executor.py  # Motor control
+├── LLM_reasoning_node.py       # Sequential reasoning + buffer control
+├── occupancy_grid_publisher.py # Dynamic buffer application
+├── path_planner.py             # Stage-aware planning
+├── webvid_publisher.py         # Video streaming
+├── yolo_node.py                # Goal proximity filtering
+└── utils/
+    └── best_v2.pt              # YOLO weights
+```
+
+## Citation
+```bibtex
+@article{barkley2025sequential,
+  title  = {Sequential Semantic Task Execution with GPT-4 and A* Path Planning for Low-Cost Robotics},
+  author = {Barkley, Jesse and George, Abraham and Farimani, Amir Barati},
+  journal= {arXiv preprint arXiv:2505.01931},
+  year   = {2025}
+}
+```
+
+## Contributing
+We welcome contributions! Please open issues, fork the repository, and submit pull requests.
+
+## License
+This project is licensed under the MIT License — see the LICENSE file for details.
+
+## Contact
+Jesse Barkley — jabarkle@andrew.cmu.edu
+Carnegie Mellon University, Department of Mechanical Engineering
