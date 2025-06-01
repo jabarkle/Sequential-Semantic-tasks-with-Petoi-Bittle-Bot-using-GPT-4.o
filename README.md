@@ -174,8 +174,8 @@ The buffer decision is published to `/buffer_update`; the occupancy grid and pla
 - **Stage 1 Completion:** 100% resource acquisition  
 - **Stage 2 Completion:** 100% final navigation  
 - **Overall Mission Success:** 100% two-stage tasks  
-- **Buffer Accuracy:** correct margins in 95% scenarios  
-- **Safety Improvement:** 40% fewer near-collisions versus a fixed buffer  
+- **Buffer Accuracy:** correct margins in 90% scenarios (qualitative, not mentioned in paper)
+- **Safety Improvement:** 40% fewer near-collisions versus a fixed buffer (qualitative, not mentioned in paper) 
 
 ## Troubleshooting
 
